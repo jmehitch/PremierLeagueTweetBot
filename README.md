@@ -9,6 +9,4 @@ Twitter Bot that sends out a tweet/tweet thread of today's Premier League fixtur
 
 ## Project Todos 
 - Add features:
-    - Reply to tweets containing queries (e.g player names with number of goals that player has scored)
-    - Tweet top scorers every week
     - Tweet league top 5 every week 
