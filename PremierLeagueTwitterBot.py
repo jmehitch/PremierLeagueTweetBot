@@ -5,6 +5,8 @@ import http.client
 import json
 import datetime
 import tweepy
+import schedule
+import time 
 
 
 def twitter_auth():
@@ -93,9 +95,14 @@ def send_tweets(tweet1, tweet2, tweet3):
 
 
 def main():
-    """Runs functions"""
-    construct_fixtures_tweets()
+    """Runs script at 11:00AM every day"""
+    schedule.every().day.at("11:00").do(construct_fixtures_tweets)
+
+    while True: 
+        schedule.run_pending()
+        time.sleep(2400) # Delays for an hour
 
 
 if __name__ == "__main__":
     main()
+
