@@ -163,11 +163,12 @@ def reply_goals_tweets():
 
 
 def main():
-    """Runs fixtures script at 11:00AM every day"""
+    # Runs fixtures script at 11:00AM every day
     schedule.every().day.at("11:00").do(construct_fixtures_tweets)
 
     while True: 
         schedule.run_pending()
+        # Runs reply with goals script every 30s 
         reply_goals_tweets()
         time.sleep(30) # Wait 30 secs
         # Print run status to log
