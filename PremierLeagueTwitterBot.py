@@ -60,26 +60,36 @@ def construct_fixtures_tweets():
         return print('No PL fixtures today')
 
 
-def send_tweets(tweet, tweet2, tweet3):
+def send_tweets(tweet1, tweet2, tweet3):
     """Publishes tweets to timeline using Twitter API"""
 
     # Authorises Twitter API connection
     api = twitter_auth()
 
+    # Checks if tweet has already been made today
+    get_tweet = api.user_timeline(count=1,tweet_mode="extended")
+    last_tweet = get_tweet[0].full_text
+    tweet = tweet1[:-1]
+    if last_tweet == tweet:
+        return print('Already tweeted')
+        
     # Sends tweets to timeline, depending on how many tweets created
     # Multiple tweets sent as a thread by responding to previous tweet
     if tweet3:
-        first_tweet = api.update_status(tweet)
+        first_tweet = api.update_status(tweet1)
         first_id = first_tweet.id
         second_tweet = api.update_status(tweet2, first_id)
         second_id = second_tweet.id
         api.update_status(tweet3, second_id)
+        return print('successfully sent tweets')
     elif tweet2:
-        first_tweet = api.update_status(tweet)
+        first_tweet = api.update_status(tweet1)
         first_id = first_tweet.id
         api.update_status(tweet2, first_id)
+        return print('successfully sent tweets')
     else:
-        api.update_status(tweet)
+        api.update_status(tweet1)
+        return print('successfully sent tweets')
 
 
 def main():
