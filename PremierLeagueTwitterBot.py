@@ -159,6 +159,9 @@ def reply_goals_tweets():
             api.update_status(tweet_str, in_reply_to_status_id=tweet_id)
             return print('Bot replied to '+reply_to)
     # If player not found or hasn't scored reply stating this
+    tweet_str = reply_to + " Player not scored (or name not spelt correctly)"
+    store_last_replied_id(tweet_id, "last_replied_id.txt")
+    api.update_status(tweet_str, in_reply_to_status_id=tweet_id)
     return print('no player found from '+reply_to+"'s tweet")
 
 
