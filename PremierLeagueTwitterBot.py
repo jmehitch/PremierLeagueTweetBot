@@ -6,7 +6,9 @@ import json
 import datetime
 import tweepy
 import schedule
-import time 
+import time
+import re
+import pytz
 
 
 ### ----- Twitter Authentication -----
@@ -16,10 +18,10 @@ def twitter_auth():
     """Authenticates and connects to Twitter API"""
     
     # Twitter API Keys
-    consumer_key = "xv2KYZLVCpcduMWajMBtvwtvb"
-    consumer_secret_key = "**********"
-    access_token = "**********"
-    access_token_secret = "**********"
+    consumer_key = ""
+    consumer_secret_key = ""
+    access_token = ""
+    access_token_secret = ""
 
     # Twitter API authorisation
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret_key)
@@ -39,7 +41,7 @@ def construct_fixtures_tweets():
 
     # Gets today's fixtures data from football-data.org API
     connection = http.client.HTTPConnection('api.football-data.org')
-    headers = {'X-Auth-Token': '**********'}
+    headers = {'X-Auth-Token': ''}
     connection.request('GET', '/v2/competitions/PL/matches?dateFrom='+today+'&dateTo='+today, None, headers)
     response = json.loads(connection.getresponse().read().decode())
 
@@ -53,7 +55,9 @@ def construct_fixtures_tweets():
         # For each fixture obtained, appends line to tweet with information
         for i in range(len(response['matches'])):
             time = response['matches'][i]['utcDate']
-            ko_time = str(datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ'))[-8:-3]
+            utc = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
+            gmt = pytz.timezone("Europe/London").fromutc(utc)
+            ko_time = gmt.strftime("%H:%M")
             tweet_line = response['matches'][i]['homeTeam']['name'] + ' vs ' + response['matches'][i]['awayTeam'][
                 'name'] + ' (' + ko_time + ')' + '\n'
             # Checks that tweet will not be too long (~ >280 chars), by splitting into separate tweets
@@ -136,20 +140,19 @@ def reply_goals_tweets():
     last_tweet_id = int(get_last_replied_id("last_replied_id.txt"))
 
     if last_tweet_id == tweet_id:
-        return print("Already replied to query")
+        return print("Already replied to tweet")
 
     # Get player name from tweet
     player = mentions[0].text[12:].lower()
 
     # Gets today's fixtures data from football-data.org API
     connection = http.client.HTTPConnection('api.football-data.org')
-    headers = {'X-Auth-Token': '**********'}
+    headers = {'X-Auth-Token': ''}
     connection.request('GET', '/v2/competitions/PL/scorers?limit=400', None, headers)
     response = json.loads(connection.getresponse().read().decode())
 
     # Loop through all PL scorers and search for match
     for i in response['scorers']:
-        # TODO - REMOVE ACCENTS
         # If player matches scored DB send tweet stating goals scored
         if i['player']['name'].lower() == player:
             goals_scored = str(i['numberOfGoals'])
@@ -166,15 +169,14 @@ def reply_goals_tweets():
 
 
 def main():
-    # Runs fixtures script at 11:00AM every day
+    """Runs fixtures script at 11:00AM every day"""
+    print("starting tweet bot - runs at 11AM every day...")
     schedule.every().day.at("11:00").do(construct_fixtures_tweets)
 
     while True: 
         schedule.run_pending()
-        # Runs reply with goals script every 30s 
-        reply_goals_tweets()
-        time.sleep(30) # Wait 30 secs
-        # Print run status to log
+        # reply_goals_tweets()
+        time.sleep(300) # Wait 30 secs
         print('still running at '+ str(datetime.datetime.time(datetime.datetime.now()))[:5])
 
 
